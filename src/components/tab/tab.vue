@@ -75,9 +75,11 @@
         const transform = -pos.x / slideWidth * tabBarWidth
         this.$refs.tabBar.setSliderTransform(transform)
       },
+      // onChange方法为每次切换bar的时候触发，所以需要在mounted中触发一次以获取数据
       onChange(current) {
         this.index = current
         const component = this.$refs.component[current]
+        //下面这句话的意思就是如果定义了fetch方法就调用这个方法
         component.fetch && component.fetch()
       }
     }

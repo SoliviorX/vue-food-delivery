@@ -64,17 +64,21 @@
         </cube-scroll-nav-panel>
       </cube-scroll-nav>
     </div>
-    <!-- <div class="shop-cart-wrapper">
+    <div class="shop-cart-wrapper">
       <shop-cart
+        :select-foods="selectFoods"
         :delivery-price="seller.deliveryPrice"
         :min-price="seller.minPrice"></shop-cart>
-    </div> -->
+    </div>
   </div>
 </template>
 
 <script>
   import { getGoods } from 'api'
   import SupportIco from 'components/support-ico/support-ico'
+  import CartControl from 'components/cart-control/cart-control'
+  import ShopCart from 'components/shop-cart/shop-cart'
+  import Bubble from 'components/bubble/bubble'
   
   export default {
     name: 'goods',
@@ -95,21 +99,21 @@
         }
       }
     },
-    // computed: {
-    //   seller() {
-    //     return this.data.seller
-    //   },
-    //   selectFoods() {
-    //     let foods = []
-    //     this.goods.forEach((good) => {
-    //       good.foods.forEach((food) => {
-    //         if (food.count) {
-    //           foods.push(food)
-    //         }
-    //       })
-    //     })
-    //     return foods
-    //   },
+    computed: {
+      seller() {
+        return this.data.seller
+      },
+      selectFoods() {
+        let foods = []
+        this.goods.forEach((good) => {
+          good.foods.forEach((food) => {
+            if (food.count) {
+              foods.push(food)
+            }
+          })
+        })
+        return foods
+      },
     //   barTxts() {
     //     let ret = []
     //     this.goods.forEach((good) => {
@@ -126,13 +130,13 @@
     //     })
     //     return ret
     //   }
-    // },
+    },
     methods: {
       fetch() {
         getGoods().then((goods) => {
             this.goods = goods
         })
-    },
+        }
     //   selectFood(food) {
     //     this.selectedFood = food
     //     this._showFood()
@@ -173,7 +177,10 @@
     //   }
     },
     components: {
-      SupportIco
+        Bubble,
+        SupportIco,
+        CartControl,
+        ShopCart
     }
   }
 </script>
@@ -191,6 +198,7 @@
       top: 0
       left: 0
       bottom: 48px
+    //   通过>>>的方式改变子组件的样式
     >>> .cube-scroll-nav-bar
       width: 80px
       white-space: normal
