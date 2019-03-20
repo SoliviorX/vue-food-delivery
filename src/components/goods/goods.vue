@@ -131,9 +131,12 @@ export default {
   },
   methods: {
     fetch() {
-      getGoods().then(goods => {
-        this.goods = goods;
-      });
+      if (!this.fetched) {
+        this.fetched = true
+        getGoods().then(goods => {
+          this.goods = goods;
+        });
+      }
     },
     //   selectFood(food) {
     //     this.selectedFood = food

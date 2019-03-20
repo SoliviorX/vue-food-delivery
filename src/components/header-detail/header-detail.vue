@@ -36,11 +36,13 @@
 </template>
 
 <script>
+  import popupMixin from 'common/mixins/popup'
   import Star from 'components/star/star'
   import SupportIco from 'components/support-ico/support-ico'
 
   export default {
     name: 'header-detail',
+    mixins: [popupMixin],
     props: {
       seller: {
         type: Object,
@@ -48,19 +50,6 @@
           return {}
         }
       }
-    },
-    data() {
-        return {
-          visible: false
-        }
-    },
-    methods: {
-        show() {
-            this.visible = true
-        },
-        hide() {
-            this.visible = false
-        }
     },
     components: {
       SupportIco,

@@ -15,7 +15,7 @@
           <div class="desc">另需配送费￥{{deliveryPrice}}元</div>
         </div>
         <div class="content-right">
-          <div class="pay" :class="payClass">{{payDesc}}</div>
+          <div @click="pay" class="pay" :class="payClass">{{payDesc}}</div>
         </div>
       </div>
       <div class="ball-container">
@@ -130,16 +130,16 @@ export default {
         this._hideShopCartList()
       }
     },
-    //   pay(e) {
-    //     if (this.totalPrice < this.minPrice) {
-    //       return
-    //     }
-    //     this.$createDialog({
-    //       title: '支付',
-    //       content: `您需要支付${this.totalPrice}元`
-    //     }).show()
-    //     e.stopPropagation()
-    //   },
+      pay(e) {
+        if (this.totalPrice < this.minPrice) {
+          return
+        }
+        this.$createDialog({
+          title: '支付',
+          content: `您需要支付${this.totalPrice}元`
+        }).show()
+        e.stopPropagation()
+      },
     drop(el) {
       for (let i = 0; i < this.balls.length; i++) {
         const ball = this.balls[i];
@@ -219,12 +219,12 @@ export default {
   watch: {
     fold(newVal) {
       this.listFold = newVal
+    },
+    totalCount(count) {
+      if (!this.fold && count === 0) {
+        this._hideShopCartList()
+      }
     }
-    // totalCount(count) {
-    //   if (!this.fold && count === 0) {
-    //     this._hideShopCartList()
-    //   }
-    // }
   },
   components: {
     Bubble
