@@ -11,30 +11,32 @@
 </template>
 
 <script>
-  export default {
-    name: 'cart-control',
-    props: {
-      food: {
-        type: Object
+const EVENT_ADD = "add";
+
+export default {
+  name: "cart-control",
+  props: {
+    food: {
+      type: Object
+    }
+  },
+  methods: {
+    add(event) {
+      //   原本food没有count属性，count为新增属性
+      if (!this.food.count) {
+        this.$set(this.food, "count", 1);
+      } else {
+        this.food.count++;
       }
+      this.$emit(EVENT_ADD, event.target);
     },
-    methods: {
-      add(event) {
-        //   原本food没有count属性，count为新增属性
-        if (!this.food.count) {
-          this.$set(this.food, 'count', 1)
-        } else {
-          this.food.count++
-        }
-        // this.$emit(EVENT_ADD, event.target)
-      },
-      decrease() {
-        if (this.food.count) {
-          this.food.count--
-        }
+    decrease() {
+      if (this.food.count) {
+        this.food.count--;
       }
     }
   }
+};
 </script>
 
 <style lang="stylus" scoped>
