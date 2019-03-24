@@ -16,12 +16,12 @@
         :show-dots=false
         :initial-index="index"
         ref="slide"
-        @change="onChange"
-        @scroll="onScroll"
         :options="slideOptions"
+        @scroll="onScroll"
+        @change="onChange"
       >
         <cube-slide-item v-for="(tab,index) in tabs" :key="index">
-          <component :is="tab.component" :data="tab.data"></component> 
+          <component ref="component" :is="tab.component" :data="tab.data"></component>
         </cube-slide-item>
       </cube-slide>
     </div>
@@ -29,14 +29,13 @@
 </template>
 
 <script>
-
   export default {
     name: 'tab',
     props: {
       tabs: {
         type: Array,
         default() {
-          return {}
+          return []
         }
       },
       initialIndex: {
@@ -62,19 +61,26 @@
         set(newVal) {
           this.index = this.tabs.findIndex((value) => {
             return value.label === newVal
-          })
+          })  
         }
       }
     },
+    mounted() {
+      this.onChange(this.index)
+    },
     methods: {
-      onChange(current) {
-        this.index = current
-      },
       onScroll(pos) {
         const tabBarWidth = this.$refs.tabBar.$el.clientWidth
         const slideWidth = this.$refs.slide.slide.scrollerWidth
-        const transform = -pos.x/slideWidth*tabBarWidth
+        const transform = -pos.x / slideWidth * tabBarWidth
         this.$refs.tabBar.setSliderTransform(transform)
+      },
+      // onChange方法为每次切换bar的时候触发，所以需要在mounted中触发一次以获取数据
+      onChange(current) {
+        this.index = current
+        const component = this.$refs.component[current]
+        //下面这句话的意思就是如果定义了fetch方法就调用这个方法
+        component.fetch && component.fetch()
       }
     }
   }
@@ -82,12 +88,10 @@
 
 <style lang="stylus" scoped>
   @import "~common/stylus/variable"
-
   .tab
     display: flex
     flex-direction: column
     height: 100%
-    // >>> 这个符号的用法在Vue Loader里有介绍；.cube-tab这个类可以在调试工具中看到
     >>> .cube-tab
       padding: 10px 0
     .slide-wrapper

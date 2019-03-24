@@ -10,7 +10,7 @@ import VHeader from 'components/v-header/v-header'
 import Goods from 'components/goods/goods'
 import Seller from 'components/seller/seller'
 import Ratings from 'components/ratings/ratings'
-import { getSeller } from 'api/index.js'
+import { getSeller } from 'api'
 import Tab from 'components/tab/tab'
 
 export default {
