@@ -135,6 +135,7 @@ export default {
   methods: {
     // 获取goods数据
     fetch() {
+      // 如果执行过fetch方法则不执行，不然每次滑动cube-slide-item都会刷新goods数据
       if (!this.fetched) {
         this.fetched = true
         getGoods().then(goods => {

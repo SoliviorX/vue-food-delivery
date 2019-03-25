@@ -59,7 +59,7 @@
     },
     created() {
         // cube-scroll在visible为false的时候初始化的，当执行show()时没有再初始化cube-scroll，所以无法滚动，
-        // 于是在created里监听show()，执行refresh()
+        // 于是在created里监听show() {或者直接在show()里}，执行refresh()
       this.$on(EVENT_SHOW, () => {
         this.$nextTick(() => {
           this.$refs.listContent.refresh()
