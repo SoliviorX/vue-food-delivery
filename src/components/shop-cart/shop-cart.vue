@@ -1,0 +1,330 @@
+<template>
+  <div>
+    <div class="shopcart">
+      <div class="content" @click="toggleList">
+        <div class="content-left">
+          <div class="logo-wrapper">
+            <div class="logo" :class="{'highlight':totalCount>0}">
+              <i class="icon-shopping_cart" :class="{'highlight':totalCount>0}"></i>
+            </div>
+            <div class="num" v-show="totalCount>0">
+              <bubble :num="totalCount"></bubble>
+            </div>
+          </div>
+          <div class="price" :class="{'highlight':totalPrice>0}">￥{{totalPrice}}</div>
+          <div class="desc">另需配送费￥{{deliveryPrice}}元</div>
+        </div>
+        <div class="content-right">
+          <div @click="pay" class="pay" :class="payClass">{{payDesc}}</div>
+        </div>
+      </div>
+      <div class="ball-container">
+        <div v-for="(ball,index) in balls" :key="index">
+          <transition @before-enter="beforeDrop" @enter="dropping" @after-enter="afterDrop">
+            <div class="ball" v-show="ball.show">
+              <div class="inner inner-hook"></div>
+            </div>
+          </transition>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import Bubble from "components/bubble/bubble";
+const BALL_LEN = 10;
+const innerClsHook = "inner-hook";
+function createBalls() {
+  let ret = [];
+  for (let i = 0; i < BALL_LEN; i++) {
+    ret.push({
+      show: false
+    });
+  }
+  return ret;
+}
+export default {
+  name: "shop-cart",
+  props: {
+    // 下面三个数据从goods.vue接收
+    selectFoods: {
+      type: Array,
+      default() {
+        return [];
+      }
+    },
+    deliveryPrice: {
+      type: Number,
+      default: 0
+    },
+    minPrice: {
+      type: Number,
+      default: 0
+    },
+    // 下面两个数据从shop-cart-sticky接受的
+    fold: {
+      type: Boolean,
+      default: true
+    },
+    sticky: {
+      type: Boolean,
+      default: false
+    }
+  },
+  data() {
+    return {
+      balls: createBalls(),
+      listFold: this.fold
+    };
+  },
+  computed: {
+    totalPrice() {
+      let total = 0;
+      this.selectFoods.forEach((food) => {
+        total += food.price * food.count;
+      });
+      return total;
+    },
+    totalCount() {
+      let count = 0;
+      this.selectFoods.forEach((food) => {
+        count += food.count;
+      });
+      return count;
+    },
+    payDesc() {
+      if (this.totalPrice === 0) {
+        return `￥${this.minPrice}元起送`;
+      } else if (this.totalPrice < this.minPrice) {
+        let diff = this.minPrice - this.totalPrice;
+        return `还差￥${diff}元起送`;
+      } else {
+        return "去结算";
+      }
+    },
+    payClass() {
+      if (!this.totalCount || this.totalPrice < this.minPrice) {
+        return "not-enough";
+      } else {
+        return "enough";
+      }
+    }
+  },
+  created() {
+    this.dropBalls = [];
+  },
+  methods: {
+    // ShopCartList是以API模式挂载到body下，层级很高，会挡住shopCart组件的一部分内容，现制作一个shopCart的副本showShopCartSticky，同样以API模式挂在到body下
+    toggleList() {
+        // listFold默认为fold：true，即默认是收起的
+      if (this.listFold) {
+        if (!this.totalCount) {
+          return
+        }
+        this.listFold = false
+        this._showShopCartList()
+        this._showShopCartSticky()
+      } else {
+        this.listFold = true
+        this._hideShopCartList()
+      }
+    },
+    pay(e) {
+        if (this.totalPrice < this.minPrice) {
+            return
+        }
+        this.$createDialog({
+            title: '支付',
+            content: `您需要支付${this.totalPrice}元`
+        }).show()
+        // 阻止冒泡，也可以在click后加事件修饰符
+        e.stopPropagation()
+    },
+    drop(el) {
+      for (let i = 0; i < this.balls.length; i++) {
+        const ball = this.balls[i];
+        if (!ball.show) {
+          ball.show = true;
+          ball.el = el;
+          this.dropBalls.push(ball);
+          return;
+        }
+      }
+    },
+    beforeDrop(el) {
+      const ball = this.dropBalls[this.dropBalls.length - 1];
+      const rect = ball.el.getBoundingClientRect();
+      const x = rect.left - 32;
+      const y = -(window.innerHeight - rect.top - 22);
+      el.style.display = "";
+      // 设置el.style.webkitTransform为了兼容安卓版本
+      el.style.transform = el.style.webkitTransform = `translate3d(0,${y}px,0)`;
+      const inner = el.getElementsByClassName(innerClsHook)[0];
+      inner.style.transform = inner.style.webkitTransform = `translate3d(${x}px,0,0)`;
+    },
+    dropping(el, done) {
+      this._reflow = document.body.offsetHeight;
+      el.style.transform = el.style.webkitTransform = `translate3d(0,0,0)`;
+      const inner = el.getElementsByClassName(innerClsHook)[0];
+      inner.style.transform = inner.style.webkitTransform = `translate3d(0,0,0)`;
+      el.addEventListener("transitionend", done);
+    },
+    afterDrop(el) {
+      const ball = this.dropBalls.shift();
+      if (ball) {
+        ball.show = false;
+        el.style.display = "none";
+      }
+    },
+    _showShopCartList() {
+      // 下面这句话是为了避免每次都调用$createShopCartList,而对它做一个缓存，优化性能
+      this.shopCartListComp = this.shopCartListComp || this.$createShopCartList({
+        $props: {
+          selectFoods: 'selectFoods'
+        },
+        $events: {
+          leave: () => {
+            //   当shopCartListComp过渡到after-leave时隐藏shopCartStickyComp
+            this._hideShopCartSticky()
+          },
+          hide: () => {
+            this.listFold = true
+          },
+          add: (el) => {
+            //   调用的时shopCartStickyComp里的drop()方法，而不是shop-cart里的drop()方法
+            this.shopCartStickyComp.drop(el)
+          }
+        }
+      })
+      this.shopCartListComp.show()
+    },
+    _showShopCartSticky() {
+      this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
+        $props: {
+          selectFoods: 'selectFoods',
+          deliveryPrice: 'deliveryPrice',
+          minPrice: 'minPrice',
+          fold: 'listFold',
+          list: this.shopCartListComp 
+        }
+      })
+      this.shopCartStickyComp.show()
+    },
+    _hideShopCartList() {
+    // 如果直接写成this.shopCartListComp.hide()会出问题，因为shop-cart-sticky没有shopCartListComp
+    // 如果list= true ，即shopCartStickyComp存在，则list=this.$parent.list否则list=this.shopCartListComp，然后再把它隐藏
+      const list = this.sticky ? this.$parent.list : this.shopCartListComp
+    //   如果list有hide方法则执行它
+      list.hide && list.hide()
+    },
+    _hideShopCartSticky() {
+      this.shopCartStickyComp.hide()
+    }
+  },
+  watch: {
+    //   监听fold的变化，在执行toggleList()时listFold会发生变化，以免重复创造shopCartStickyComp
+    fold(newVal) {
+      this.listFold = newVal
+    },
+    // 监听totalCount值的变化隐藏shopCartListComp，比如在清空购物车后或手动把shopCartListComp里的food减到零，应该把shopCartListComp隐藏
+    totalCount(count) {
+      if (!this.fold && count === 0) {
+        this._hideShopCartList()
+      }
+    }
+  },
+  components: {
+    Bubble
+  }
+};
+</script>
+
+<style lang="stylus" scoped>
+  @import "~common/stylus/mixin"
+  @import "~common/stylus/variable"
+  .shopcart
+    height: 100%
+    .content
+      display: flex
+      background: $color-background
+      font-size: 0
+      color: $color-light-grey
+      .content-left
+        flex: 1
+        .logo-wrapper
+          display: inline-block
+          vertical-align: top
+          position: relative
+          top: -10px
+          margin: 0 12px
+          padding: 6px
+          width: 56px
+          height: 56px
+          box-sizing: border-box
+          border-radius: 50%
+          background: $color-background
+          .logo
+            width: 100%
+            height: 100%
+            border-radius: 50%
+            text-align: center
+            background: $color-dark-grey
+            &.highlight
+              background: $color-blue
+            .icon-shopping_cart
+              line-height: 44px
+              font-size: $fontsize-large-xxx
+              color: $color-light-grey
+              &.highlight
+                color: $color-white
+          .num
+            position: absolute
+            top: 0
+            right: 0
+        .price
+          display: inline-block
+          vertical-align: top
+          margin-top: 12px
+          line-height: 24px
+          padding-right: 12px
+          box-sizing: border-box
+          border-right: 1px solid rgba(255, 255, 255, 0.1)
+          font-weight: 700
+          font-size: $fontsize-large
+          &.highlight
+            color: $color-white
+        .desc
+          display: inline-block
+          vertical-align: top
+          margin: 12px 0 0 12px
+          line-height: 24px
+          font-size: $fontsize-small-s
+      .content-right
+        flex: 0 0 105px
+        width: 105px
+        .pay
+          height: 48px
+          line-height: 48px
+          text-align: center
+          font-weight: 700
+          font-size: $fontsize-small
+          &.not-enough
+            background: $color-dark-grey
+          &.enough
+            background: $color-green
+            color: $color-white
+    .ball-container
+      .ball
+        position: fixed
+        left: 32px
+        bottom: 22px
+        z-index: 200
+        transition: all 0.4s cubic-bezier(0.49, -0.29, 0.75, 0.41)
+        .inner
+          width: 16px
+          height: 16px
+          border-radius: 50%
+          background: $color-blue
+          transition: all 0.4s linear
+</style>

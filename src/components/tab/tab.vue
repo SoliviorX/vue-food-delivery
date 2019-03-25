@@ -15,10 +15,10 @@
         :auto-play=false
         :show-dots=false
         :initial-index="index"
-        ref="slide"
-        :options="slideOptions"
-        @scroll="onScroll"
-        @change="onChange"
+        ref="slide" 
+        :options="slideOptions" 
+        @scroll="onScroll" 
+        @change="onChange" 
       >
         <cube-slide-item v-for="(tab,index) in tabs" :key="index">
           <component ref="component" :is="tab.component" :data="tab.data"></component>
@@ -75,7 +75,7 @@
         const transform = -pos.x / slideWidth * tabBarWidth
         this.$refs.tabBar.setSliderTransform(transform)
       },
-      // onChange方法为每次切换bar的时候触发，所以需要在mounted中触发一次以获取数据
+      // onChange方法为每次切换bar的时候触发，所以需要在mounted中触发一次以获取数据(在没有滑动的时候)
       onChange(current) {
         this.index = current
         const component = this.$refs.component[current]

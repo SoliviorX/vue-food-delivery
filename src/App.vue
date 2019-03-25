@@ -1,17 +1,19 @@
 <template>
   <div id="app">
     <v-header :seller="seller"></v-header>
-    <tab :tabs="tabs" :initialIndex=0></tab>
+    <div class="tab-wrapper">
+      <tab :tabs="tabs" :initialIndex=0></tab>
+    </div>
   </div>
 </template>
 
 <script>
 import VHeader from 'components/v-header/v-header'
 import Goods from 'components/goods/goods'
-import Seller from 'components/seller/seller'
 import Ratings from 'components/ratings/ratings'
-import { getSeller } from 'api'
+import Seller from 'components/seller/seller'
 import Tab from 'components/tab/tab'
+import { getSeller } from 'api'
 
 export default {
   name: 'app',
@@ -29,15 +31,13 @@ export default {
           data: {
             seller: this.seller
           }
-        },
-        {
+        }, {
           label: '评价',
           component: Ratings,
           data: {
             seller: this.seller
           }
-        },
-        {
+        }, {
           label: '商家',
           component: Seller,
           data: {
@@ -64,5 +64,12 @@ export default {
 }
 </script>
 <style lang="stylus">
-
+// 不加下面的这个样式，tab-slide不能滑动
+  #app
+    .tab-wrapper
+      position: fixed
+      top: 136px
+      left: 0
+      right: 0
+      bottom: 0
 </style>
