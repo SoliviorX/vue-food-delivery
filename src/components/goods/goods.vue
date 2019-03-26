@@ -92,6 +92,7 @@ export default {
   data() {
     return {
       goods: [],
+      selectedFood: {},
       scrollOptions: {
         click: false,
         directionLockThreshold: 0
@@ -138,49 +139,51 @@ export default {
       // 如果执行过fetch方法则不执行，不然每次滑动cube-slide-item都会刷新goods数据
       if (!this.fetched) {
         this.fetched = true
-        getGoods().then(goods => {
+        getGoods({
+          id: this.seller.id
+        }).then(goods => {
           this.goods = goods;
         });
       }
     },
-    //   selectFood(food) {
-    //     this.selectedFood = food
-    //     this._showFood()
-    //     this._showShopCartSticky()
-    //   },
+    selectFood(food) {
+      this.selectedFood = food
+      this._showFood()
+      this._showShopCartSticky()
+    },
     onAdd(el) {
       this.$refs.shopCart.drop(el);
+    },
+    _showFood() {
+      this.foodComp = this.foodComp || this.$createFood({
+        $props: {
+          food: 'selectedFood'
+        },
+        $events: {
+          add: (target) => {
+            this.shopCartStickyComp.drop(target)
+          },
+          leave: () => {
+            this._hideShopCartSticky()
+          }
+        }
+      })
+      this.foodComp.show()
+    },
+    _showShopCartSticky() {
+      this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
+        $props: {
+          selectFoods: 'selectFoods',
+          deliveryPrice: this.seller.deliveryPrice,
+          minPrice: this.seller.minPrice,
+          fold: true
+        }
+      })
+      this.shopCartStickyComp.show()
+    },
+    _hideShopCartSticky() {
+      this.shopCartStickyComp.hide()
     }
-    //   _showFood() {
-    //     this.foodComp = this.foodComp || this.$createFood({
-    //       $props: {
-    //         food: 'selectedFood'
-    //       },
-    //       $events: {
-    //         add: (target) => {
-    //           this.shopCartStickyComp.drop(target)
-    //         },
-    //         leave: () => {
-    //           this._hideShopCartSticky()
-    //         }
-    //       }
-    //     })
-    //     this.foodComp.show()
-    //   },
-    //   _showShopCartSticky() {
-    //     this.shopCartStickyComp = this.shopCartStickyComp || this.$createShopCartSticky({
-    //       $props: {
-    //         selectFoods: 'selectFoods',
-    //         deliveryPrice: this.seller.deliveryPrice,
-    //         minPrice: this.seller.minPrice,
-    //         fold: true
-    //       }
-    //     })
-    //     this.shopCartStickyComp.show()
-    //   },
-    //   _hideShopCartSticky() {
-    //     this.shopCartStickyComp.hide()
-    //   }
   },
   components: {
     Bubble,
