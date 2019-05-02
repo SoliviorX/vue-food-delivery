@@ -60,5 +60,7 @@ module.exports = {
     // 插件配置
     config.plugin('context')
       .use(webpack.ContextReplacementPlugin, [/moment[/\\]locale$/, /zh-cn/])
-  }
+  },
+  // 配置publicPath，使根路径为相对路径
+  publicPath: ''
 }
