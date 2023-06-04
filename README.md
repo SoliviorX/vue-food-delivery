@@ -1,5 +1,9 @@
 # food-delivery
 
+该项目是一个仿饿了么的移动端项目，是我在入行前端时做的实战项目。
+
+技术栈： vue2 + cubeUI + webpack
+
 ## Project setup
 ```
 npm install
